@@ -36,7 +36,7 @@ It demonstrates basic CRUD operations for managing users.
    ```bash
    git clone https://github.com/ofekdinis/field-management-system.git
    cd field-management-system
-<!-- 
+
 ──────────────────────────────────────────────────────────────
 💡 OPTIONAL: How to switch from In-Memory DB to SQL Server
 ──────────────────────────────────────────────────────────────
@@ -68,4 +68,3 @@ To use Microsoft SQL Server instead:
    dotnet ef database update
 
 Now the app will use SQL Server instead of the in-memory DB.
--->
