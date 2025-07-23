@@ -50,10 +50,10 @@ To use Microsoft SQL Server instead:
    dotnet add package Microsoft.EntityFrameworkCore.SqlServer
 
 2. Replace the in-memory DB line in Program.cs:
-   From:
+  - From:
        builder.Services.AddDbContext<AppDbContext>(options =>
            options.UseInMemoryDatabase("FieldDb"));
-   To:
+  - To:
        builder.Services.AddDbContext<AppDbContext>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
