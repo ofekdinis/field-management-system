@@ -4,6 +4,18 @@ using FieldManagementSystem.Data;
 using FieldManagementSystem.Models;
 
 namespace FieldManagementSystem.Controllers;
+/// <summary>
+/// The DeviceController is an API controller in an ASP.NET Core Web API project.
+/// It is responsible for handling HTTP requests related to Device (or Controller) entities, such as:
+/// - Viewing devices (GET)
+/// - Creating a new device (POST)
+/// - Updating a device (PUT)
+/// - Deleting a device (DELETE)
+///
+/// This controller serves as the bridge between the client (e.g., frontend application)
+/// and the database, using Entity Framework Core (via AppDbContext) to perform
+/// database operations.
+/// </summary>
 
 [ApiController]
 [Route("api/[controller]")]
@@ -24,7 +36,7 @@ public class DeviceControllersControler : ControllerBase
     /// </summary>
     /// <returns>List of all deviceController.</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<DeviceController>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<DeviceController>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DeviceController>>> GetControllers()
     {
         return await _context.DeviceControllers
@@ -38,8 +50,8 @@ public class DeviceControllersControler : ControllerBase
     /// <param name="id">The ID of the deviceController to retrieve.</param>
     /// <returns>The deviceController with the given ID.</returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(DeviceController), 200)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(typeof(DeviceController), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DeviceController>> GetController(int id)
     {
         var deviceController = await _context.DeviceControllers
@@ -55,11 +67,11 @@ public class DeviceControllersControler : ControllerBase
     /// <summary>
     /// Creates a new deviceController.
     /// </summary>
-    /// <param name="controller">The deviceController object to create.</param>
+    /// <param name="deviceController">The deviceController object to create.</param>
     /// <returns>The created deviceController.</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(DeviceController), 201)]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(typeof(DeviceController), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DeviceController>> PostController(DeviceController deviceController)
     {
         _context.DeviceControllers.Add(deviceController);
@@ -72,11 +84,11 @@ public class DeviceControllersControler : ControllerBase
     /// Updates an existing deviceController.
     /// </summary>
     /// <param name="id">The ID of the deviceController to update.</param>
-    /// <param name="controller">The updated deviceController object.</param>
+    /// <param name="deviceController">The updated deviceController object.</param>
     [HttpPut("{id}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutController(int id, DeviceController deviceController)
     {
         if (id != deviceController.Id)
@@ -104,8 +116,8 @@ public class DeviceControllersControler : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the controller to delete.</param>
     [HttpDelete("{id}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteController(int id)
     {
         var controller = await _context.DeviceControllers.FindAsync(id);
