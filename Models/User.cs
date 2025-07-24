@@ -34,7 +34,7 @@ public class User
     public required string Email { get; set; }
 
     /// <summary>
-    /// Collection of fields managed by the user.
+    /// Collection of fields managed by the user. This is optional during creation.
     /// </summary>
-    public ICollection<Field> Fields { get; set; } = new List<Field>();
+    public ICollection<Field>? Fields { get; set; }  // Nullable to avoid JSON binding issues
 }
