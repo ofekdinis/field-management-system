@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FieldManagementSystem.Data;
 using FieldManagementSystem.Models;
+using FieldManagementSystem.DTOs;
 
 namespace FieldManagementSystem.Controllers;
 
@@ -70,49 +71,49 @@ public class FieldsController : ControllerBase
     /// <summary>
     /// Creates a new field.
     /// </summary>
-    /// <param name="field">The field object to create.</param>
+    /// <param name="fieldDto">The field data to create.</param>
     /// <returns>The created field.</returns>
     [HttpPost]
     [ProducesResponseType(typeof(Field), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Field>> PostField(Field field)
+    public async Task<ActionResult<Field>> PostField(FieldDto fieldDto)
     {
+        var field = new Field
+        {
+            Name = fieldDto.Name,
+            UserId = fieldDto.UserId
+        };
+
         _context.Fields.Add(field);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetField), new { id = field.Id }, field);
     }
 
+
     /// <summary>
     /// Updates an existing field.
     /// </summary>
     /// <param name="id">The ID of the field to update.</param>
-    /// <param name="field">The updated field object.</param>
+    /// <param name="fieldDto">The updated field data.</param>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutField(int id, Field field)
+    public async Task<IActionResult> PutField(int id, FieldDto fieldDto)
     {
-        if (id != field.Id)
-            return BadRequest();
+        var existingField = await _context.Fields.FindAsync(id);
+        if (existingField == null)
+            return NotFound();
 
-        _context.Entry(field).State = EntityState.Modified;
+        // Update allowed fields
+        existingField.Name = fieldDto.Name;
+        existingField.UserId = fieldDto.UserId;
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!_context.Fields.Any(f => f.Id == id))
-                return NotFound();
-            else
-                throw;
-        }
-
+        await _context.SaveChangesAsync();
         return NoContent();
     }
+
 
     /// <summary>
     /// Deletes a field by ID.
