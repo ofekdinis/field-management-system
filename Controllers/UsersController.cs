@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FieldManagementSystem.Data;
 using FieldManagementSystem.Models;
+using FieldManagementSystem.DTOs;
 
 namespace FieldManagementSystem.Controllers;
 
@@ -56,13 +57,15 @@ public class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<User>> PostUser(User user)
+    public async Task<ActionResult<User>> PostUser(UserDto userDto)
     {
-        var existingUser = await _context.Users.FindAsync(user.Id);
-        if (existingUser != null)
+        // Map DTO to entity
+        var user = new User
         {
-            return Conflict("A user with the same ID already exists.");
-        }
+            Name = userDto.Name,
+            PhoneNumber = userDto.PhoneNumber,
+            Email = userDto.Email
+        };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
@@ -72,24 +75,26 @@ public class UsersController : ControllerBase
 
     /// <summary>Updates an existing user. Returns 404 if the user is not found.</summary>
     /// <response code="204">User updated successfully</response>
+    /// <response code="400">Bad request (ID mismatch)</response>
     /// <response code="404">User not found</response>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutUser(int id, User user)
-    {
-        if (id != user.Id)//does id match
-            return BadRequest();
-        //does user in DB?
+    public async Task<IActionResult> PutUser(int id, UserDto userDto)
+    {        
         var existingUser = await _context.Users.FindAsync(id);
         if (existingUser == null)
             return NotFound();
 
-        //Update properties on the existing user
-        _context.Entry(existingUser).CurrentValues.SetValues(user);
+        // Update only allowed properties
+        existingUser.Name = userDto.Name;
+        existingUser.PhoneNumber = userDto.PhoneNumber;
+        existingUser.Email = userDto.Email;
 
+        // Save changes
         await _context.SaveChangesAsync();
+
         return NoContent();
     }
 
