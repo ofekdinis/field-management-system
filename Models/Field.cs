@@ -17,7 +17,6 @@ public class Field
     /// <summary>
     /// Name of the field.
     /// </summary>
-    [Required]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
@@ -34,6 +33,5 @@ public class Field
     /// <summary>
     /// The collection of device controllers associated with this field.
     /// </summary>
-    [Required]
-    public ICollection<DeviceController> DeviceControllers { get; set; } = new List<DeviceController>();
+    public ICollection<DeviceController>? DeviceControllers { get; set; } = new List<DeviceController>();
 }
