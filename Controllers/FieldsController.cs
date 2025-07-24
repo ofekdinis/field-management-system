@@ -5,6 +5,19 @@ using FieldManagementSystem.Models;
 
 namespace FieldManagementSystem.Controllers;
 
+/// <summary>
+/// The FieldsController is an API controller in an ASP.NET Core Web API project.
+/// It is responsible for handling HTTP requests related to Field entities, such as:
+/// - Viewing fields (GET)
+/// - Creating a new field (POST)
+/// - Updating a field (PUT)
+/// - Deleting a field (DELETE)
+///
+/// This controller serves as the bridge between the client (e.g., frontend application)
+/// and the database, using Entity Framework Core (via AppDbContext) to perform
+/// database operations.
+/// </summary>
+
 [ApiController]
 [Route("api/[controller]")]
 public class FieldsController : ControllerBase
@@ -24,7 +37,7 @@ public class FieldsController : ControllerBase
     /// </summary>
     /// <returns>List of all fields.</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Field>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<Field>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Field>>> GetFields()
     {
         return await _context.Fields
@@ -39,8 +52,8 @@ public class FieldsController : ControllerBase
     /// <param name="id">The ID of the field to retrieve.</param>
     /// <returns>The field with the given ID.</returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Field), 200)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(typeof(Field), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Field>> GetField(int id)
     {
         var field = await _context.Fields
@@ -60,8 +73,8 @@ public class FieldsController : ControllerBase
     /// <param name="field">The field object to create.</param>
     /// <returns>The created field.</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(Field), 201)]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(typeof(Field), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Field>> PostField(Field field)
     {
         _context.Fields.Add(field);
@@ -76,9 +89,9 @@ public class FieldsController : ControllerBase
     /// <param name="id">The ID of the field to update.</param>
     /// <param name="field">The updated field object.</param>
     [HttpPut("{id}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutField(int id, Field field)
     {
         if (id != field.Id)
@@ -106,8 +119,8 @@ public class FieldsController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the field to delete.</param>
     [HttpDelete("{id}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteField(int id)
     {
         var field = await _context.Fields.FindAsync(id);
