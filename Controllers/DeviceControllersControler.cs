@@ -16,21 +16,22 @@ public class DeviceControllersController : ControllerBase
 {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Constructor that injects the application's DbContext.
+    /// </summary>
     public DeviceControllersController(AppDbContext context)
     {
         _context = context;
     }
 
     /// <summary>
-    /// Gets a list of all deviceControllers with their related fields.
+    /// Gets a list of all deviceControllers.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<DeviceController>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DeviceController>>> GetControllers()
     {
-        return await _context.DeviceControllers
-            .Include(c => c.Field)
-            .ToListAsync();
+        return await _context.DeviceControllers.ToListAsync();
     }
 
     /// <summary>
@@ -42,7 +43,6 @@ public class DeviceControllersController : ControllerBase
     public async Task<ActionResult<DeviceController>> GetController(int id)
     {
         var deviceController = await _context.DeviceControllers
-            .Include(c => c.Field)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (deviceController == null)
@@ -66,6 +66,7 @@ public class DeviceControllersController : ControllerBase
         };
 
         _context.DeviceControllers.Add(deviceController);
+
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetController), new { id = deviceController.Id }, deviceController);
@@ -80,10 +81,34 @@ public class DeviceControllersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutController(int id, DeviceControllerDto dto)
     {
-        var existing = await _context.DeviceControllers.FindAsync(id);
+        var existing = await _context.DeviceControllers
+            .FirstOrDefaultAsync(dc => dc.Id == id);
+
         if (existing == null)
             return NotFound();
 
+        // If the field changed, update the navigation collections
+        if (existing.FieldId != dto.FieldId)
+        {
+            // Remove from old field
+            var oldField = await _context.Fields
+                .Include(f => f.DeviceControllers)
+                .FirstOrDefaultAsync(f => f.Id == existing.FieldId);
+
+            oldField?.DeviceControllers?.Remove(existing);
+
+            // Add to new field
+            var newField = await _context.Fields
+                .Include(f => f.DeviceControllers)
+                .FirstOrDefaultAsync(f => f.Id == dto.FieldId);
+
+            if (newField == null)
+                return BadRequest($"Field with ID {dto.FieldId} not found");
+
+            newField.DeviceControllers!.Add(existing);
+        }
+
+        // Update fields
         existing.Type = dto.Type;
         existing.FieldId = dto.FieldId;
 
