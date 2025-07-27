@@ -38,19 +38,19 @@ public class FieldsController : ControllerBase
     /// </summary>
     /// <returns>List of all fields.</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<FieldDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<FieldDto>>> GetFields()
+    [ProducesResponseType(typeof(IEnumerable<FieldResponseDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<FieldResponseDto>>> GetFields()
     {
         var fields = await _context.Fields.ToListAsync();
 
-        // Convert to list of FieldDto (even if empty)
-        var dtoList = fields.Select(field => new FieldDto
+        var dtoList = fields.Select(field => new FieldResponseDto
         {
+            Id = field.Id,
             Name = field.Name,
             UserId = field.UserId
         }).ToList();
 
-        return Ok(dtoList); // Will return 200 OK with [] if dtoList is empty
+        return Ok(dtoList);
     }
 
     /// <summary>
@@ -59,18 +59,18 @@ public class FieldsController : ControllerBase
     /// <param name="id">The ID of the field to retrieve.</param>
     /// <returns>The field with the given ID.</returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(FieldDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(FieldResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FieldDto>> GetField(int id)
+    public async Task<ActionResult<FieldResponseDto>> GetField(int id)
     {
-        var field = await _context.Fields
-            .FirstOrDefaultAsync(f => f.Id == id);
+        var field = await _context.Fields.FirstOrDefaultAsync(f => f.Id == id);
 
         if (field == null)
             return NotFound();
 
-        var dto = new FieldDto
+        var dto = new FieldResponseDto
         {
+            Id = field.Id,
             Name = field.Name,
             UserId = field.UserId
         };
@@ -84,9 +84,9 @@ public class FieldsController : ControllerBase
     /// <param name="fieldDto">The field data to create.</param>
     /// <returns>The created field.</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(FieldDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(FieldResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FieldDto>> PostField(FieldDto fieldDto)
+    public async Task<ActionResult<FieldResponseDto>> PostField(FieldDto fieldDto)
     {
         var user = await _context.Users.FindAsync(fieldDto.UserId);
         if (user == null)
@@ -101,8 +101,16 @@ public class FieldsController : ControllerBase
         _context.Fields.Add(field);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetField), new { id = field.Id }, field);
+        var responseDto = new FieldResponseDto
+        {
+            Id = field.Id,
+            Name = field.Name,
+            UserId = field.UserId
+        };
+
+        return CreatedAtAction(nameof(GetField), new { id = field.Id }, responseDto);
     }
+
 
 
 
@@ -146,4 +154,35 @@ public class FieldsController : ControllerBase
 
         return NoContent();
     }
+    /// <summary>
+    /// Gets all device controllers associated with a specific field.
+    /// </summary>
+    /// <param name="id">The ID of the field.</param>
+    /// <returns>List of device controllers related to the field.</returns>
+    /// <response code="200">Returns the list of device controllers</response>
+    /// <response code="404">Field not found</response>
+    [HttpGet("{id}/DeviceControllers")]
+    [ProducesResponseType(typeof(IEnumerable<DeviceControllerResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<DeviceControllerResponseDto>>> GetDeviceControllersForField(int id)
+    {
+        var field = await _context.Fields
+            .Include(f => f.DeviceControllers)
+            .FirstOrDefaultAsync(f => f.Id == id);
+
+        if (field == null)
+            return NotFound($"Field with ID {id} not found.");
+        //if its not null take the values ,else return empty list.
+        var deviceControllers = field.DeviceControllers ?? new List<DeviceController>();
+
+        var responseDtos = deviceControllers.Select(dc => new DeviceControllerResponseDto
+        {
+            Id = dc.Id,
+            Type = dc.Type,
+            FieldId = dc.FieldId
+        }).ToList();
+
+        return Ok(responseDtos);
+    }
+
 }
