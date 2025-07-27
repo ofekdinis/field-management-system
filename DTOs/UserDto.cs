@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace FieldManagementSystem.DTOs;
-
+// data transfer object that hides internal model details
 /// <summary>
 /// Data transfer object used when creating a new user.
 /// </summary>
