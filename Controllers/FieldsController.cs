@@ -34,17 +34,23 @@ public class FieldsController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a list of all fields including related user and controllers.
+    /// Gets a list of all fields.
     /// </summary>
     /// <returns>List of all fields.</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Field>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<Field>>> GetFields()
+    [ProducesResponseType(typeof(IEnumerable<FieldDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<FieldDto>>> GetFields()
     {
-        return await _context.Fields
-            .Include(f => f.User)
-            .Include(f => f.DeviceControllers)
-            .ToListAsync();
+        var fields = await _context.Fields.ToListAsync();
+
+        // Convert to list of FieldDto (even if empty)
+        var dtoList = fields.Select(field => new FieldDto
+        {
+            Name = field.Name,
+            UserId = field.UserId
+        }).ToList();
+
+        return Ok(dtoList); // Will return 200 OK with [] if dtoList is empty
     }
 
     /// <summary>
@@ -53,19 +59,23 @@ public class FieldsController : ControllerBase
     /// <param name="id">The ID of the field to retrieve.</param>
     /// <returns>The field with the given ID.</returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Field), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(FieldDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Field>> GetField(int id)
+    public async Task<ActionResult<FieldDto>> GetField(int id)
     {
         var field = await _context.Fields
-            .Include(f => f.User)
-            .Include(f => f.DeviceControllers)
             .FirstOrDefaultAsync(f => f.Id == id);
 
         if (field == null)
             return NotFound();
 
-        return field;
+        var dto = new FieldDto
+        {
+            Name = field.Name,
+            UserId = field.UserId
+        };
+
+        return Ok(dto);
     }
 
     /// <summary>
@@ -74,10 +84,14 @@ public class FieldsController : ControllerBase
     /// <param name="fieldDto">The field data to create.</param>
     /// <returns>The created field.</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(Field), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Field>> PostField(FieldDto fieldDto)
+    [ProducesResponseType(typeof(FieldDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FieldDto>> PostField(FieldDto fieldDto)
     {
+        var user = await _context.Users.FindAsync(fieldDto.UserId);
+        if (user == null)
+            return NotFound($"User with ID {fieldDto.UserId} not found.");
+
         var field = new Field
         {
             Name = fieldDto.Name,
@@ -91,6 +105,7 @@ public class FieldsController : ControllerBase
     }
 
 
+
     /// <summary>
     /// Updates an existing field.
     /// </summary>
@@ -98,18 +113,16 @@ public class FieldsController : ControllerBase
     /// <param name="fieldDto">The updated field data.</param>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutField(int id, FieldDto fieldDto)
-    {
-        var existingField = await _context.Fields.FindAsync(id);
-        if (existingField == null)
-            return NotFound();
-
-        // Update allowed fields
-        existingField.Name = fieldDto.Name;
-        existingField.UserId = fieldDto.UserId;
-
+    {   //get the field we want to update
+        var field = await _context.Fields.FindAsync(id);
+        if (field == null)
+            return NotFound($"Field with ID {id} not found.");
+        //update values
+        field.Name = fieldDto.Name;
+        field.UserId = fieldDto.UserId;
+        //save changes
         await _context.SaveChangesAsync();
         return NoContent();
     }
