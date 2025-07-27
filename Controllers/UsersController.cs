@@ -33,33 +33,60 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Retrieves the list of all users from the database.
     /// </summary>
-    /// <returns>A list of User entities.</returns>
+    /// <returns>A list of UserResponseDto objects.</returns>
     /// <response code="200">Returns the list of users</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
     {
-        return await _context.Users.ToListAsync();
+        var users = await _context.Users.ToListAsync();
+
+        var dtoList = users.Select(user => new UserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            PhoneNumber = user.PhoneNumber,
+            Email = user.Email
+        }).ToList();
+
+        return Ok(dtoList);
     }
 
-    /// <summary>Fetches a user by ID. Returns 404 if not found.</summary>
+    /// <summary>
+    /// Fetches a user by ID. Returns 404 if not found.
+    /// </summary>
+    /// <response code="200">Returns the user</response>
+    /// <response code="404">User not found</response>
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserResponseDto>> GetUser(int id)
     {
         var user = await _context.Users.FindAsync(id);
-        if (user == null) return NotFound();
-        return user;
+        if (user == null)
+            return NotFound();
+
+        var userDto = new UserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            PhoneNumber = user.PhoneNumber,
+            Email = user.Email
+        };
+
+        return Ok(userDto);
     }
 
-    /// <summary>Creates a new user. Returns 409 if a user with the same ID already exists.</summary>
+    /// <summary>
+    /// Creates a new user.
+    /// </summary>
     /// <response code="201">User created successfully</response>
     /// <response code="409">User with the same ID already exists</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<User>> PostUser(UserDto userDto)
+    public async Task<ActionResult<UserResponseDto>> PostUser(UserDto userDto)
     {
-        // Map DTO to entity
         var user = new User
         {
             Name = userDto.Name,
@@ -70,8 +97,17 @@ public class UsersController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        var resultDto = new UserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            PhoneNumber = user.PhoneNumber,
+            Email = user.Email
+        };
+
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, resultDto);
     }
+
 
     /// <summary>Updates an existing user. Returns 404 if the user is not found.</summary>
     /// <response code="204">User updated successfully</response>
@@ -82,7 +118,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutUser(int id, UserDto userDto)
-    {        
+    {
         var existingUser = await _context.Users.FindAsync(id);
         if (existingUser == null)
             return NotFound();
@@ -113,4 +149,32 @@ public class UsersController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+    /// <summary>
+    /// Retrieves all fields related to a specific user by user ID.
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <returns>List of FieldDto objects</returns>
+    /// <response code="200">Returns the list of fields</response>
+    /// <response code="404">User not found</response>
+    [HttpGet("{id}/Fields")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<FieldDto>>> GetFieldsForUser(int id)
+    {
+        var user = await _context.Users
+            .Include(u => u.Fields)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+            return NotFound($"User with ID {id} not found.");
+
+        var fieldDtos = user.Fields.Select(field => new FieldDto
+        {
+            Name = field.Name,
+            UserId = field.UserId
+        }).ToList();
+
+        return Ok(fieldDtos);
+    }
+
 }
