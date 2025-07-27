@@ -1,6 +1,6 @@
 # Field Management System API (.NET 8, In-Memory)
 
-This is a simple RESTful API built with **ASP.NET Core 8** and **Entity Framework Core (In-Memory)**  
+This is a RESTful API built with **ASP.NET Core 8** and **Entity Framework Core (In-Memory)**  
 It demonstrates CRUD operations for managing users.
 
 ---
