@@ -159,7 +159,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id}/Fields")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<FieldDto>>> GetFieldsForUser(int id)
+    public async Task<ActionResult<IEnumerable<FieldResponseDto>>> GetFieldsForUser(int id)
     {
         var user = await _context.Users
             .Include(u => u.Fields)
@@ -168,11 +168,14 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound($"User with ID {id} not found.");
 
-        var fieldDtos = user.Fields.Select(field => new FieldDto
-        {
-            Name = field.Name,
-            UserId = field.UserId
-        }).ToList();
+        var fieldDtos = (user.Fields ?? new List<Field>())
+            .Select(field => new FieldResponseDto
+            {
+                Id=field.Id,
+                Name = field.Name,
+                UserId = field.UserId
+            }).ToList();
+
 
         return Ok(fieldDtos);
     }
