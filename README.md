@@ -21,6 +21,9 @@ It demonstrates basic CRUD operations for managing users.
 - In-Memory Database Provider
 
 ---
+Link to the Video Demo:
+https://drive.google.com/file/d/1yeS9ON7buaLXZ4_5DfpZHQLn-kR3b6R0/view?usp=drive_link
+---
 
 ## 🚀 Getting Started
 
