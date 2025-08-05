@@ -23,6 +23,11 @@ public class DeviceController
     /// <summary>
     /// ID of the field to which this controller belongs.
     /// </summary>
-    [ForeignKey(nameof(FieldId))]
     public int FieldId { get; set; }
+
+    /// <summary>
+    /// The field to which this controller belongs.
+    /// </summary>
+    [ForeignKey(nameof(FieldId))]
+    public Field Field { get; set; } = null!;
 }
