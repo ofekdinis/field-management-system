@@ -10,6 +10,17 @@ namespace FieldManagementSystem.Data;
 /// </summary>
 public class AppDbContext : DbContext
 {
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Field>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.Fields)
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
     /// <summary>
     /// Constructor for AppDbContext.
     /// Accepts options that configure the context (e.g., database provider, connection string).
