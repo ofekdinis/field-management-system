@@ -22,9 +22,13 @@ public class Field
     /// <summary>
     /// ID of the user who manages the field.
     /// </summary>
-    [ForeignKey(nameof(UserId))]
-
     public int UserId { get; set; }
+
+    /// <summary>
+    /// The user who manages the field.
+    /// </summary>
+    [ForeignKey(nameof(UserId))]
+    public User User { get; set; } = null!;
 
     /// <summary>
     /// The collection of device controllers associated with this field.
