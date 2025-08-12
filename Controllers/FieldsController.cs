@@ -145,10 +145,14 @@ public class FieldsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteField(int id)
     {
-        var field = await _context.Fields.FindAsync(id);
+        var field = await _context.Fields
+            .Include(f => f.DeviceControllers)
+            .FirstOrDefaultAsync(f => f.Id == id);
+
         if (field == null)
             return NotFound();
 
+        _context.RemoveRange(field.DeviceControllers);
         _context.Fields.Remove(field);
         await _context.SaveChangesAsync();
 
