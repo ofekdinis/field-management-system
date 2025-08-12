@@ -142,13 +142,21 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users
+            .Include(u => u.Fields)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
         if (user == null)
             return NotFound();
+
+        _context.Fields.RemoveRange(user.Fields);
         _context.Users.Remove(user);
+
         await _context.SaveChangesAsync();
+
         return NoContent();
     }
+
     /// <summary>
     /// Retrieves all fields related to a specific user by user ID.
     /// </summary>
